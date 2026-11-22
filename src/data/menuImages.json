@@ -1,0 +1,254 @@
+[
+  {
+    "name": "French Fries",
+    "category": "Appetizers",
+    "image": "/menu/01-french-fries.jpg",
+    "price": "Small $3.49 \u00b7 Large $6.99"
+  },
+  {
+    "name": "Lemon Pepper Fries",
+    "category": "Appetizers",
+    "image": "/menu/02-lemon-pepper-fries.jpg",
+    "price": "Small $3.95 \u00b7 Large $7.99"
+  },
+  {
+    "name": "Ranch Fries",
+    "category": "Appetizers",
+    "image": "/menu/03-ranch-fries.jpg",
+    "price": "Small $3.95 \u00b7 Large $7.99"
+  },
+  {
+    "name": "Seasoned Fries",
+    "category": "Appetizers",
+    "image": "/menu/05-seasoned-fries.jpg",
+    "price": "Medium $5.75 \u00b7 Large $9.95"
+  },
+  {
+    "name": "Chili Cheese Fries",
+    "category": "Appetizers",
+    "image": "/menu/06-chili-cheese-fries.jpg",
+    "price": "Medium $5.99 \u00b7 Large $10.45"
+  },
+  {
+    "name": "Fried Okra",
+    "category": "Appetizers",
+    "image": "/menu/07-fried-okra.jpg",
+    "price": "Small $3.75 \u00b7 Medium $4.75 \u00b7 Large $8.49"
+  },
+  {
+    "name": "Onion Rings",
+    "category": "Appetizers",
+    "image": "/menu/08-onion-rings.jpg",
+    "price": "Medium $4.95 \u00b7 Large $9.49"
+  },
+  {
+    "name": "Side Salad",
+    "category": "Appetizers",
+    "image": "/menu/09-side-salad.jpg",
+    "price": "$4.49"
+  },
+  {
+    "name": "Potato Skins",
+    "category": "Appetizers",
+    "image": "/menu/12-potato-skins.jpg",
+    "price": "$7.99 / 5 pcs"
+  },
+  {
+    "name": "Cheese Sticks",
+    "category": "Appetizers",
+    "image": "/menu/13-cheese-sticks.jpg",
+    "price": "$6.95 / 6 pcs"
+  },
+  {
+    "name": "Fried Mushroom",
+    "category": "Appetizers",
+    "image": "/menu/14-fried-mushroom.jpg",
+    "price": "$6.49"
+  },
+  {
+    "name": "Popcorn Shrimp",
+    "category": "Appetizers",
+    "image": "/menu/15-popcorn-shrimp.jpg",
+    "price": "$6.49"
+  },
+  {
+    "name": "Stuffed Jalape\u00f1os",
+    "category": "Appetizers",
+    "image": "/menu/16-stuffed-jalape-os.jpg",
+    "price": "$6.75 / 6 pcs"
+  },
+  {
+    "name": "Classic Caesar Salad",
+    "category": "Salads",
+    "image": "/menu/17-classic-caesar-salad.jpg",
+    "price": "$7.95"
+  },
+  {
+    "name": "The Peachtree Salad",
+    "category": "Salads",
+    "image": "/menu/18-the-peachtree-salad.jpg",
+    "price": "$7.95"
+  },
+  {
+    "name": "Fish Salad",
+    "category": "Salads",
+    "image": "/menu/19-fish-salad.jpg",
+    "price": "$11.99"
+  },
+  {
+    "name": "Shrimp Salad",
+    "category": "Salads",
+    "image": "/menu/20-shrimp-salad.jpg",
+    "price": "$12.45"
+  },
+  {
+    "name": "Plain",
+    "category": "Choose From 30 Varieties",
+    "image": "/menu/21-plain.jpg",
+    "price": "From $7.49"
+  },
+  {
+    "name": "Mild",
+    "category": "Choose From 30 Varieties",
+    "image": "/menu/22-mild.jpg",
+    "price": "From $7.49"
+  },
+  {
+    "name": "Medium",
+    "category": "Choose From 30 Varieties",
+    "image": "/menu/23-medium.jpg",
+    "price": "From $7.49"
+  },
+  {
+    "name": "Lemon Pepper",
+    "category": "Choose From 30 Varieties",
+    "image": "/menu/24-lemon-pepper.jpg",
+    "price": "From $7.49"
+  },
+  {
+    "name": "Hot",
+    "category": "Choose From 30 Varieties",
+    "image": "/menu/25-hot.jpg",
+    "price": "From $7.49"
+  },
+  {
+    "name": "Extra Hot",
+    "category": "Choose From 30 Varieties",
+    "image": "/menu/26-extra-hot.jpg",
+    "price": "From $7.49"
+  },
+  {
+    "name": "BBQ",
+    "category": "Choose From 30 Varieties",
+    "image": "/menu/27-bbq.jpg",
+    "price": "From $7.49"
+  },
+  {
+    "name": "Honey BBQ",
+    "category": "Choose From 30 Varieties",
+    "image": "/menu/28-honey-bbq.jpg",
+    "price": "From $7.49"
+  },
+  {
+    "name": "Hot Honey BBQ",
+    "category": "Choose From 30 Varieties",
+    "image": "/menu/29-hot-honey-bbq.jpg",
+    "price": "From $7.49"
+  },
+  {
+    "name": "Mild Lemon Pepper",
+    "category": "Choose From 30 Varieties",
+    "image": "/menu/49-mild-lemon-pepper.jpg",
+    "price": "From $7.49"
+  },
+  {
+    "name": "Honey Hot",
+    "category": "Choose From 30 Varieties",
+    "image": "/menu/50-honey-hot.jpg",
+    "price": "From $7.49"
+  },
+  {
+    "name": "Mango Habanero",
+    "category": "Choose From 30 Varieties",
+    "image": "/menu/51-mango-habanero.jpg",
+    "price": "From $7.49"
+  },
+  {
+    "name": "Hamburger",
+    "category": "Hamburgers",
+    "image": "/menu/83-hamburger.jpg",
+    "price": "$7.45 \u00b7 $8.95 with side"
+  },
+  {
+    "name": "Veggie Burger",
+    "category": "Hamburgers",
+    "image": "/menu/86-veggie-burger.jpg",
+    "price": "$7.75 \u00b7 $9.45 with side"
+  },
+  {
+    "name": "Chicken Finger Sandwich",
+    "category": "Hamburgers",
+    "image": "/menu/89-chicken-finger-sandwich.jpg",
+    "price": "$8.75 \u00b7 $9.99 with side"
+  },
+  {
+    "name": "Philly Cheese Steak",
+    "category": "Sandwiches",
+    "image": "/menu/93-philly-cheese-steak.jpg",
+    "price": "$8.45 \u00b7 $9.99 with side"
+  },
+  {
+    "name": "4 Pieces",
+    "category": "Chicken Tenders",
+    "image": "/menu/110-4-pieces.jpg",
+    "price": "$7.49"
+  },
+  {
+    "name": "6 Pieces",
+    "category": "Chicken Tenders",
+    "image": "/menu/111-6-pieces.jpg",
+    "price": "$9.99"
+  },
+  {
+    "name": "6 Pieces",
+    "category": "Chicken Nuggets",
+    "image": "/menu/115-6-pieces.jpg",
+    "price": "$7.99"
+  },
+  {
+    "name": "12 Pieces",
+    "category": "Chicken Nuggets",
+    "image": "/menu/116-12-pieces.jpg",
+    "price": "$9.99"
+  },
+  {
+    "name": "20 Pieces",
+    "category": "Chicken Nuggets",
+    "image": "/menu/117-20-pieces.jpg",
+    "price": "$18.99"
+  },
+  {
+    "name": "Shrimp Basket",
+    "category": "Seafood",
+    "image": "/menu/120-shrimp-basket.jpg",
+    "price": "From $8.49"
+  },
+  {
+    "name": "New York Style Cheese Cake",
+    "category": "Desserts",
+    "image": "/menu/132-new-york-style-cheese-cake.jpg",
+    "price": "$3.75"
+  },
+  {
+    "name": "Chocolate Cake",
+    "category": "Desserts",
+    "image": "/menu/133-chocolate-cake.jpg",
+    "price": "$3.75"
+  },
+  {
+    "name": "Key Lime Pie",
+    "category": "Desserts",
+    "image": "/menu/134-key-lime-pie.jpg",
+    "price": "$3.75"
+  }
+]
