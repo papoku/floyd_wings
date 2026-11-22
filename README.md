@@ -15,6 +15,10 @@ yarn dev
 
 Vite prints the local URL in the terminal. To create a production build, run `yarn build`.
 
+## Deploy to GitHub Pages
+
+The `Deploy to GitHub Pages` workflow builds and publishes the site when changes are pushed to `main` or `master`. In the repository settings, set **Pages → Build and deployment → Source** to **GitHub Actions**. The published site is available at `https://papoku.github.io/floyd_wings/`.
+
 ## Source
 
 Menu photos, logo, restaurant photos, menu, and contact details are from Floyd Wings and Grill's public materials.
