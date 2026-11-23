@@ -19,6 +19,10 @@ Vite prints the local URL in the terminal. To create a production build, run `ya
 
 The `Deploy to GitHub Pages` workflow builds and publishes the site when changes are pushed to `main` or `master`. In the repository settings, set **Pages → Build and deployment → Source** to **GitHub Actions**. The published site is available at `https://papoku.github.io/floyd_wings/`.
 
+The landscape digital menu board is available at `https://papoku.github.io/floyd_wings/menu-board.html`.
+
+The TV menu displays all categories on one landscape screen. Choose **Edit menu** to click and change text or prices, then **Save edits**. Saved edits stay in that browser on that TV. Choose **Export 4K JPEG** to download a 3840 × 2160 menu image. Choose **Full screen** for display mode (press Escape to leave it); use **Reset board** in edit mode to restore the original menu.
+
 ## Source
 
 Menu photos, logo, restaurant photos, menu, and contact details are from Floyd Wings and Grill's public materials.

@@ -96,7 +96,7 @@ function App() {
           <div className="visit-details"><div><span className="detail-label">DROP BY</span><strong>5345 Floyd Rd SW #118<br />Mableton, GA 30126</strong><a href="tel:+17706757267">(770) 675-7267</a></div><div><span className="detail-label">WHEN WE'RE HERE</span><strong>Mon – Sat <span>11 AM – 9:30 PM</span><br />Sunday <span>12 PM – 9 PM</span></strong></div><div className="visit-last"><span className="detail-label">CONTACT FLOYD WINGS AND GRILL</span><a href={orderUrl} target="_blank" rel="noreferrer">ORDER ONLINE <Arrow diagonal /></a><a href={reservationUrl}>RESERVATIONS <Arrow diagonal /></a><a href="mailto:floydwingsandgrill@gmail.com">EMAIL US <Arrow diagonal /></a></div></div>
         </section>
       </main>
-      <footer className="site-footer"><a className="site-logo footer-logo" href="#home"><img className="official-logo" src={publicAsset('/floyd-logo.png')} alt="Floyd Wings and Grill" /></a><span>FLOYD WINGS AND GRILL · MABLETON, GEORGIA</span><div><a href="#menu">MENU</a><a href={cateringUrl}>CATERING</a><a href="#visit">CONTACT</a><a href="https://www.facebook.com/235074139697860" target="_blank" rel="noreferrer">FACEBOOK ↗</a></div></footer>
+      <footer className="site-footer"><a className="site-logo footer-logo" href="#home"><img className="official-logo" src={publicAsset('/floyd-logo.png')} alt="Floyd Wings and Grill" /></a><span>FLOYD WINGS AND GRILL · MABLETON, GEORGIA</span><div><a href="#menu">MENU</a><a href={publicAsset('/menu-board.html')}>DIGITAL MENU ↗</a><a href={cateringUrl}>CATERING</a><a href="#visit">CONTACT</a><a href="https://www.facebook.com/235074139697860" target="_blank" rel="noreferrer">FACEBOOK ↗</a></div></footer>
     </div>
   )
 }
