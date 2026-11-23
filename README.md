@@ -21,7 +21,7 @@ The `Deploy to GitHub Pages` workflow builds and publishes the site when changes
 
 The landscape digital menu board is available at `https://papoku.github.io/floyd_wings/menu-board.html`.
 
-The TV menu displays all categories on one landscape screen. Choose **Edit menu** to click and change text or prices, then **Save edits**. Saved edits stay in that browser on that TV. Choose **Export 4K JPEG** to download a 3840 × 2160 menu image. Choose **Full screen** for display mode (press Escape to leave it); use **Reset board** in edit mode to restore the original menu.
+The TV menu has three landscape screens: sandwiches, tacos/nachos/salads, and seafood. Use the arrow controls to preview screens; full-screen mode rotates every 15 seconds. Choose **Edit menu** to change text or prices, then **Save edits**. Saved edits stay in that browser on that TV. **Export TV pictures** downloads each screen as a separate 3840 × 2160 JPEG. Press Escape to leave full screen; use **Reset board** in edit mode to restore the original menu.
 
 ## Source
 

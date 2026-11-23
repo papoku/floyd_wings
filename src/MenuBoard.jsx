@@ -29,96 +29,526 @@ const tacos = [
   ['Fried Fish', '6.99'],
 ]
 
+const screenContent = [
+  { title: 'BURGERS & SANDWICHES', photo: 'burger-fries.jpg' },
+  { title: 'TACOS · NACHOS · SALADS', photo: 'floyd-feature-1.jpg' },
+  { title: 'SEAFOOD', photo: 'wings-platter.jpg' },
+]
+
 function Price({ children }) {
   return <span className="board-price">${children}</span>
 }
 
-function drawRoundedBox(context, x, y, width, height, radius, color) {
+const palette = { cream: '#f7f4ed', ink: '#22271f', muted: '#55584f', red: '#e86237', orange: '#f29b70', rule: '#d8d3c9' }
+
+function roundRect(context, x, y, width, height, radius, color) {
   context.fillStyle = color
   context.beginPath()
-  if (typeof context.roundRect === 'function') context.roundRect(x, y, width, height, radius)
+  if (context.roundRect) context.roundRect(x, y, width, height, radius)
   else context.rect(x, y, width, height)
   context.fill()
 }
 
-function drawTextNode(context, node, boardBounds) {
-  const text = node.nodeValue || ''
-  const wordPattern = /\S+/gu
-  const style = window.getComputedStyle(node.parentElement)
-  const fontSize = Number.parseFloat(style.fontSize) || 12
-  const lineHeight = Number.parseFloat(style.lineHeight) || fontSize * 1.2
-  context.font = `${style.fontStyle} ${style.fontWeight} ${fontSize}px ${style.fontFamily}`
-  context.fillStyle = style.color
-  context.textBaseline = 'alphabetic'
-  context.textAlign = 'left'
-  if ('letterSpacing' in context) context.letterSpacing = style.letterSpacing || '0px'
-  let previousLine = null
-  let previousRight = 0
+function text(context, value, x, y, font, color = palette.ink, align = 'left') {
+  context.font = font
+  context.fillStyle = color
+  context.textAlign = align
+  context.textBaseline = 'top'
+  context.fillText(String(value || ''), x, y)
+}
 
-  for (const match of text.matchAll(wordPattern)) {
-    const range = document.createRange()
-    range.setStart(node, match.index)
-    range.setEnd(node, match.index + match[0].length)
-    const bounds = range.getBoundingClientRect()
-    if (!bounds.width || !bounds.height) continue
-    const baseline = bounds.top - boardBounds.top + Math.max(0, (lineHeight - fontSize) / 2) + fontSize * 0.82
-    const line = Math.round(bounds.top)
-    const measuredX = bounds.left - boardBounds.left
-    const space = context.measureText(' ').width * 0.65
-    const x = line === previousLine ? Math.max(measuredX, previousRight + space) : measuredX
-    context.fillText(match[0], x, baseline)
-    previousRight = x + context.measureText(match[0]).width
-    previousLine = line
+function wrappedText(context, value, x, y, width, font, color, lineHeight, maxLines = 3) {
+  context.font = font
+  context.fillStyle = color
+  context.textAlign = 'left'
+  context.textBaseline = 'top'
+  const words = String(value || '').trim().split(/\s+/)
+  const lines = []
+  let line = ''
+  for (const word of words) {
+    const candidate = line ? `${line} ${word}` : word
+    if (line && context.measureText(candidate).width > width && lines.length < maxLines - 1) {
+      lines.push(line)
+      line = word
+    } else line = candidate
+  }
+  if (line) lines.push(line)
+  lines.slice(0, maxLines).forEach((valueLine, index) => context.fillText(valueLine, x, y + index * lineHeight, width))
+  return Math.min(lines.length, maxLines) * lineHeight
+}
+
+function panel(context, x, y, width, height) {
+  roundRect(context, x, y, width, height, 22, palette.cream)
+}
+
+function panelHeading(context, x, y, index, title, width, size = 42) {
+  text(context, index, x, y + 5, '800 19px "DM Sans", Arial, sans-serif', palette.orange)
+  text(context, title, x + 42, y, `900 ${size}px "DM Sans", Arial, sans-serif`, palette.red)
+  context.fillStyle = palette.red
+  context.fillRect(x, y + 61, width, 4)
+  return y + 85
+}
+
+function readBoardData(board) {
+  const read = (element) => element?.textContent?.replace(/\s+/g, ' ').trim() || ''
+  const prices = (element) => [...element.querySelectorAll('.board-price')].map(read)
+  const seafoodFeatures = [...board.querySelectorAll('.seafood-feature')]
+  const shrimpRows = [...board.querySelectorAll('.shrimp-row')]
+  return {
+    sandwiches: [...board.querySelectorAll('.sandwich-row')].map((row) => ({
+      name: read(row.querySelector('.sandwich-copy strong')),
+      description: read(row.querySelector('.sandwich-copy small')),
+      withSide: prices(row)[0],
+      only: prices(row)[1],
+    })),
+    sandwichIntro: read(board.querySelector('.sandwich-panel > .panel-description')),
+    sandwichNotes: [...board.querySelectorAll('.sandwich-notes span')].map(read),
+    sandwichExtras: read(board.querySelector('.sandwich-extras')),
+    tacoIntro: read(board.querySelector('.taco-panel .small-description')),
+    tacos: [...board.querySelectorAll('.compact-row')].map((row) => ({ name: read(row.querySelector('span')), price: prices(row)[0] })),
+    bowls: [...board.querySelectorAll('.featured-item')].map((item) => ({
+      name: read(item.querySelector('strong')),
+      price: prices(item)[0],
+      description: read(item.querySelector('p')),
+    })),
+    bowlAddOns: read(board.querySelector('.add-ons')),
+    saladIntro: read(board.querySelector('.salad-panel .small-description')),
+    salads: [...board.querySelectorAll('.salad-list > div')].map((item) => ({
+      name: read(item.querySelector('strong')),
+      price: prices(item)[0],
+      description: read(item.querySelector('small')),
+    })),
+    seafoodIntro: read(board.querySelector('.seafood-panel > .panel-description')),
+    seafood: [
+      {
+        name: read(seafoodFeatures[0]?.querySelector('h3')),
+        description: read(seafoodFeatures[0]?.querySelector('p')),
+        price: prices(seafoodFeatures[0] || board)[0],
+      },
+      {
+        name: read(seafoodFeatures[1]?.querySelector('h3')),
+        description: read(seafoodFeatures[1]?.querySelector('p')),
+        price: prices(seafoodFeatures[1] || board)[0],
+      },
+      {
+        name: read(seafoodFeatures[2]?.querySelector('h3')),
+        description: read(seafoodFeatures[2]?.querySelector('p')),
+        prices: shrimpRows.map((row) => ({
+          name: read(row.querySelector('strong')),
+          withSide: prices(row)[0],
+          only: prices(row)[1],
+        })),
+      },
+    ],
+    drinkNote: read(board.querySelector('.drink-note strong')),
   }
 }
 
-function paintBoard(context, element, boardBounds) {
-  const bounds = element.getBoundingClientRect()
-  const style = window.getComputedStyle(element)
-  if (style.display === 'none' || style.visibility === 'hidden' || !bounds.width || !bounds.height) return
+function drawTvFrame(context, logo, title, number) {
+  const W = 3840, H = 2160, margin = 54
+  const bg = context.createRadialGradient(W / 2, 0, 0, W / 2, 0, W * 0.8)
+  bg.addColorStop(0, '#343a30')
+  bg.addColorStop(0.55, '#22271f')
+  bg.addColorStop(1, '#191d18')
+  context.fillStyle = bg
+  context.fillRect(0, 0, W, H)
+  roundRect(context, margin, 36, 238, 96, 12, palette.cream)
+  if (logo?.complete && logo.naturalWidth) {
+    const fit = Math.min(212 / logo.naturalWidth, 76 / logo.naturalHeight)
+    const logoW = logo.naturalWidth * fit, logoH = logo.naturalHeight * fit
+    context.drawImage(logo, margin + (238 - logoW) / 2, 36 + (96 - logoH) / 2, logoW, logoH)
+  }
+  text(context, 'FLOYD WINGS AND GRILL', margin + 264, 40, '900 43px "DM Sans", Arial, sans-serif', palette.cream)
+  text(context, 'MABLETON, GEORGIA', margin + 266, 92, '700 19px "DM Sans", Arial, sans-serif', '#bdc1b2')
+  text(context, `SCREEN ${number} / 3  ·  FRESH, MADE TO ORDER`, W - margin, 42, '700 18px "DM Sans", Arial, sans-serif', '#bdc1b2', 'right')
+  text(context, title, W - margin, 75, '900 32px "DM Sans", Arial, sans-serif', palette.orange, 'right')
+  context.fillStyle = '#596050'
+  context.fillRect(margin, 148, W - margin * 2, 2)
+  context.fillRect(margin, 2090, W - margin * 2, 2)
+  text(context, '*Prices and menu items may change', margin, 2105, '600 15px "DM Sans", Arial, sans-serif', '#c2c0b5')
+  text(context, 'THANKS FOR DINING WITH US!', W / 2, 2103, '800 18px "DM Sans", Arial, sans-serif', '#f7f3e9', 'center')
+  text(context, '5345 FLOYD RD SW #118 · MABLETON, GA', W - margin, 2105, '600 15px "DM Sans", Arial, sans-serif', '#c2c0b5', 'right')
+}
 
-  const x = bounds.left - boardBounds.left
-  const y = bounds.top - boardBounds.top
-  const background = style.backgroundColor
-  if (element.classList.contains('menu-board')) {
-    const gradient = context.createRadialGradient(boardBounds.width / 2, 0, 0, boardBounds.width / 2, 0, boardBounds.width * 0.8)
-    gradient.addColorStop(0, '#394032')
-    gradient.addColorStop(0.55, '#272d24')
-    gradient.addColorStop(1, '#1d211b')
-    context.fillStyle = gradient
-    context.fillRect(0, 0, boardBounds.width, boardBounds.height)
-  } else if (background !== 'transparent' && background !== 'rgba(0, 0, 0, 0)') {
-    const radius = Number.parseFloat(style.borderTopLeftRadius) || 0
-    drawRoundedBox(context, x, y, bounds.width, bounds.height, radius, background)
+function drawHeroBanner(context, image, top = 168) {
+  const x = 54, width = 3732, height = 100
+  context.save()
+  context.beginPath()
+  if (context.roundRect) context.roundRect(x, top, width, height, 20)
+  else context.rect(x, top, width, height)
+  context.clip()
+  const bg = context.createLinearGradient(x, top, x + width, top + height)
+  bg.addColorStop(0, '#22271f')
+  bg.addColorStop(0.58, '#343a30')
+  bg.addColorStop(1, '#e86237')
+  context.fillStyle = bg
+  context.fillRect(x, top, width, height)
+  if (image?.complete && image.naturalWidth) {
+    const scale = Math.max(width / image.naturalWidth, height / image.naturalHeight)
+    const imageWidth = image.naturalWidth * scale
+    const imageHeight = image.naturalHeight * scale
+    context.drawImage(image, x + (width - imageWidth) / 2, top + (height - imageHeight) / 2, imageWidth, imageHeight)
+    context.fillStyle = 'rgba(34,39,31,.18)'
+    context.fillRect(x, top, width, height)
+  }
+  const edge = context.createLinearGradient(x, top, x + width, top)
+  edge.addColorStop(0, 'rgba(34,39,31,.3)')
+  edge.addColorStop(0.18, 'rgba(34,39,31,0)')
+  edge.addColorStop(0.82, 'rgba(34,39,31,0)')
+  edge.addColorStop(1, 'rgba(34,39,31,.22)')
+  context.fillStyle = edge
+  context.fillRect(x, top, width, height)
+  context.fillStyle = palette.red
+  context.fillRect(x, top + height - 6, width, 6)
+  context.restore()
+}
+
+async function loadPublicImage(path) {
+  const image = new Image()
+  image.src = `${import.meta.env.BASE_URL}${path}`
+  try {
+    await image.decode()
+    return image
+  } catch {
+    return null
+  }
+}
+
+function renderTvSlide(context, data, logo, slide, foodPhoto) {
+  const W = 3840, margin = 54, gap = 24, top = 290, height = 1770
+  const cardTitle = (x, y, title, width, size = 34) => {
+    text(context, title, x, y, `900 ${size}px "DM Sans", Arial, sans-serif`, palette.red)
+    context.fillStyle = palette.red
+    context.fillRect(x, y + size + 12, width, 3)
+    return y + size + 34
   }
 
-  const borderWidth = Number.parseFloat(style.borderBottomWidth) || 0
-  if (borderWidth && style.borderBottomStyle !== 'none') {
-    context.fillStyle = style.borderBottomColor
-    context.fillRect(x, y + bounds.height - borderWidth, bounds.width, borderWidth)
-  }
-
-  if (element instanceof HTMLImageElement && element.complete && element.naturalWidth) {
-    const fit = style.objectFit
-    const scale = fit === 'cover'
-      ? Math.max(bounds.width / element.naturalWidth, bounds.height / element.naturalHeight)
-      : Math.min(bounds.width / element.naturalWidth, bounds.height / element.naturalHeight)
-    const imageWidth = element.naturalWidth * scale
-    const imageHeight = element.naturalHeight * scale
-    context.drawImage(element, x + (bounds.width - imageWidth) / 2, y + (bounds.height - imageHeight) / 2, imageWidth, imageHeight)
+  if (slide === 0) {
+    drawTvFrame(context, logo, 'BURGERS & SANDWICHES', 1)
+    drawHeroBanner(context, foodPhoto)
+    const x = margin, w = W - margin * 2, p = 38, innerX = x + p, innerW = w - p * 2
+    panel(context, x, top, w, height)
+    let y = cardTitle(innerX, top + 30, 'Burgers & sandwiches', innerW, 56)
+    y += wrappedText(context, data.sandwichIntro, innerX, y, innerW, '500 26px "DM Sans", Arial, sans-serif', palette.muted, 34, 2) + 12
+    const colGap = 30, itemW = (innerW - colGap) / 2, sideW = 142, onlyW = 132, labelGap = 16
+    const nameW = itemW - sideW - onlyW - labelGap
+    for (let col = 0; col < 2; col += 1) {
+      const cx = innerX + col * (itemW + colGap)
+      text(context, 'SANDWICH', cx + nameW + sideW / 2, y, '800 22px "DM Sans", Arial, sans-serif', palette.muted, 'center')
+      text(context, '& SIDE', cx + nameW + sideW / 2, y + 28, '900 22px "DM Sans", Arial, sans-serif', palette.red, 'center')
+      text(context, 'SANDWICH', cx + nameW + sideW + labelGap + onlyW / 2, y, '800 22px "DM Sans", Arial, sans-serif', palette.muted, 'center')
+      text(context, 'ONLY', cx + nameW + sideW + labelGap + onlyW / 2, y + 28, '900 22px "DM Sans", Arial, sans-serif', palette.red, 'center')
+    }
+    y += 62
+    const notesHeight = 76, rowHeight = (top + height - p - notesHeight - y) / 8
+    data.sandwiches.forEach((item, index) => {
+      const col = Math.floor(index / 8), row = index % 8
+      const cx = innerX + col * (itemW + colGap), ry = y + row * rowHeight
+      text(context, item.name, cx, ry + 10, '800 42px "DM Sans", Arial, sans-serif')
+      wrappedText(context, item.description, cx, ry + 62, nameW, '500 28px "DM Sans", Arial, sans-serif', palette.muted, 35, 3)
+      text(context, item.withSide, cx + nameW + sideW - 8, ry + 10, '900 40px "DM Sans", Arial, sans-serif', palette.red, 'right')
+      text(context, item.only, cx + itemW, ry + 10, '900 40px "DM Sans", Arial, sans-serif', palette.red, 'right')
+      context.fillStyle = palette.rule
+      context.fillRect(cx, ry + rowHeight - 2, itemW, 2)
+    })
+    const notesY = top + height - p - notesHeight
+    text(context, data.sandwichNotes[0], innerX, notesY, '800 25px "DM Sans", Arial, sans-serif', palette.red)
+    text(context, data.sandwichNotes[1], innerX + innerW, notesY, '800 25px "DM Sans", Arial, sans-serif', palette.red, 'right')
+    text(context, data.sandwichExtras, innerX, notesY + 38, '600 21px "DM Sans", Arial, sans-serif', palette.muted)
     return
   }
 
-  for (const child of element.childNodes) {
-    if (child.nodeType === Node.TEXT_NODE) drawTextNode(context, child, boardBounds)
-    else if (child.nodeType === Node.ELEMENT_NODE) paintBoard(context, child, boardBounds)
+  if (slide === 1) {
+    drawTvFrame(context, logo, 'TACOS · NACHOS · SALADS', 2)
+    drawHeroBanner(context, foodPhoto)
+    const ratios = [1.08, 1.08, 1.2], totalW = W - margin * 2 - gap * 2
+    const unit = totalW / ratios.reduce((sum, value) => sum + value, 0)
+    const widths = ratios.map((value) => value * unit)
+    const xs = [margin, margin + widths[0] + gap, margin + widths[0] + gap + widths[1] + gap]
+    const pad = 30
+    xs.forEach((x, index) => panel(context, x, top, widths[index], height))
+
+    let x = xs[0] + pad, w = widths[0] - pad * 2
+    let y = cardTitle(x, top + 32, 'Tacos at Floyd', w, 54)
+    y += wrappedText(context, data.tacoIntro, x, y, w, '500 25px "DM Sans", Arial, sans-serif', palette.muted, 34, 3) + 22
+    const tacoH = (top + height - 36 - y) / data.tacos.length
+    data.tacos.forEach((item, i) => {
+      const ty = y + i * tacoH
+      text(context, item.name, x, ty + 5, '700 38px "DM Sans", Arial, sans-serif')
+      text(context, item.price, x + w, ty + 5, '900 38px "DM Sans", Arial, sans-serif', palette.red, 'right')
+      context.fillStyle = palette.rule
+      context.fillRect(x, ty + tacoH - 3, w, 2)
+    })
+
+    x = xs[1] + pad; w = widths[1] - pad * 2
+    y = cardTitle(x, top + 32, 'Nachos & Burritos', w, 48)
+    const bowlGap = 48, bowlH = (height - 190) / 2
+    data.bowls.forEach((item, i) => {
+      const iy = y + i * bowlH
+      text(context, item.name, x, iy, '800 37px "DM Sans", Arial, sans-serif')
+      text(context, item.price, x + w, iy, '900 37px "DM Sans", Arial, sans-serif', palette.red, 'right')
+      wrappedText(context, item.description, x, iy + 54, w, '500 28px "DM Sans", Arial, sans-serif', palette.muted, 38, 4)
+    })
+    text(context, data.bowlAddOns, x, top + height - 82, '800 24px "DM Sans", Arial, sans-serif', palette.red)
+
+    x = xs[2] + pad; w = widths[2] - pad * 2
+    y = cardTitle(x, top + 32, 'Salads', w, 54)
+    y += wrappedText(context, data.saladIntro, x, y, w, '500 23px "DM Sans", Arial, sans-serif', palette.muted, 31, 3) + 20
+    const saladH = (top + height - 34 - y) / data.salads.length
+    data.salads.forEach((item, i) => {
+      const iy = y + i * saladH
+      text(context, item.name, x, iy, '800 30px "DM Sans", Arial, sans-serif')
+      text(context, item.price, x + w, iy, '900 31px "DM Sans", Arial, sans-serif', palette.red, 'right')
+      wrappedText(context, item.description, x, iy + 42, w, '500 22px "DM Sans", Arial, sans-serif', palette.muted, 30, 3)
+      context.fillStyle = palette.rule
+      context.fillRect(x, iy + saladH - 3, w, 2)
+    })
+    return
   }
+
+  drawTvFrame(context, logo, 'SEAFOOD', 3)
+  drawHeroBanner(context, foodPhoto)
+  const introX = margin + 42, introW = W - margin * 2 - 84
+  const cardY = top, cardH = height, cardW = W - margin * 2
+  panel(context, margin, cardY, W - margin * 2, cardH)
+  const seafoodTitleY = panelHeading(context, introX, top + 30, '05', 'SEAFOOD', introW, 40)
+  wrappedText(context, data.seafoodIntro, introX, seafoodTitleY, introW, '500 22px "DM Sans", Arial, sans-serif', palette.muted, 30, 2)
+  const featureTop = seafoodTitleY + 94
+  const footerY = cardY + cardH - 42, cardGap = 28, leftW = (cardW - cardGap) * 0.43, rightW = cardW - cardGap - leftW
+  const leftX = margin, rightX = margin + leftW + cardGap, leftGap = 22
+  const leftCardH = (footerY - featureTop - leftGap - 14) / 2
+  context.fillStyle = palette.rule
+  context.fillRect(leftX + leftW + cardGap / 2, featureTop, 2, footerY - featureTop - 10)
+  context.fillRect(leftX, featureTop + leftCardH + leftGap / 2, leftW, 2)
+  const titleLine = (x, y, w, title, price) => {
+    text(context, title, x, y, '800 43px "DM Sans", Arial, sans-serif', palette.ink)
+    text(context, price, x + w, y, '900 42px "DM Sans", Arial, sans-serif', palette.red, 'right')
+    context.fillStyle = palette.red
+    context.fillRect(x, y + 60, w, 3)
+  }
+  const innerPad = 34
+  const fish = data.seafood[0], platter = data.seafood[1], shrimp = data.seafood[2]
+  let x = leftX + innerPad, w = leftW - innerPad * 2
+  let y = featureTop + 34
+  titleLine(x, y, w, fish.name, fish.price)
+  wrappedText(context, fish.description, x, y + 88, w, '500 29px "DM Sans", Arial, sans-serif', palette.ink, 39, 3)
+  const choiceY = y + 230
+  text(context, 'CHOOSE YOUR FISH', x, choiceY, '800 21px "DM Sans", Arial, sans-serif', palette.red)
+  wrappedText(context, 'Catfish · Tilapia · Whiting', x, choiceY + 40, w, '700 29px "DM Sans", Arial, sans-serif', palette.ink, 38, 2)
+
+  const platterY = featureTop + leftCardH + leftGap + 34
+  titleLine(x, platterY, w, platter.name, platter.price)
+  wrappedText(context, platter.description, x, platterY + 88, w, '500 28px "DM Sans", Arial, sans-serif', palette.ink, 38, 3)
+  text(context, '2 PIECES OF FISH  +  3 GOLDEN SHRIMP', x, platterY + 220, '800 23px "DM Sans", Arial, sans-serif', palette.red)
+
+  x = rightX + innerPad; w = rightW - innerPad * 2
+  y = featureTop + 34
+  text(context, shrimp.name, x, y, '800 46px "DM Sans", Arial, sans-serif', palette.ink)
+  context.fillStyle = palette.red
+  context.fillRect(x, y + 62, w, 3)
+  wrappedText(context, shrimp.description, x, y + 82, w, '500 29px "DM Sans", Arial, sans-serif', palette.ink, 40, 3)
+  const c1 = 260, c2 = 250, priceStart = x + w - c1 - c2
+  const tableY = y + 220
+  text(context, 'SHRIMP & SIDE', priceStart + c1 / 2, tableY, '800 22px "DM Sans", Arial, sans-serif', palette.muted, 'center')
+  text(context, 'SHRIMP ONLY', priceStart + c1 + c2 / 2, tableY, '800 22px "DM Sans", Arial, sans-serif', palette.muted, 'center')
+  shrimp.prices.forEach((item, index) => {
+    const iy = tableY + 54 + index * 120
+    text(context, item.name, x, iy, '800 40px "DM Sans", Arial, sans-serif')
+    text(context, item.withSide, priceStart + c1 / 2, iy, '900 42px "DM Sans", Arial, sans-serif', palette.red, 'center')
+    text(context, item.only, priceStart + c1 + c2 / 2, iy, '900 42px "DM Sans", Arial, sans-serif', palette.red, 'center')
+    context.fillStyle = palette.rule
+    context.fillRect(x, iy + 54, w, 2)
+  })
+  context.fillStyle = palette.rule
+  context.fillRect(margin + 32, footerY + 8, cardW - 64, 2)
+  text(context, data.drinkNote, margin + cardW / 2, footerY + 17, '800 24px "DM Sans", Arial, sans-serif', palette.red, 'center')
+}
+
+function renderMenuCanvas(context, data, logo) {
+  const W = 3840
+  const H = 2160
+  const margin = 54
+  const gap = 26
+  const headerY = 38
+  const headerH = 104
+  const footerY = 2101
+  const contentY = 166
+  const contentH = 1908
+  const contentW = W - margin * 2 - gap * 2
+  const ratio = [1.52, 1.12, 0.94]
+  const unit = contentW / ratio.reduce((sum, part) => sum + part, 0)
+  const widths = ratio.map((part) => part * unit)
+  const xs = [margin, margin + widths[0] + gap, margin + widths[0] + gap + widths[1] + gap]
+
+  const bg = context.createRadialGradient(W / 2, 0, 0, W / 2, 0, W * 0.8)
+  bg.addColorStop(0, '#394032')
+  bg.addColorStop(0.55, '#272d24')
+  bg.addColorStop(1, '#1d211b')
+  context.fillStyle = bg
+  context.fillRect(0, 0, W, H)
+  roundRect(context, margin, headerY, 238, headerH - 12, 12, palette.cream)
+  if (logo?.complete && logo.naturalWidth) {
+    const fit = Math.min(212 / logo.naturalWidth, 80 / logo.naturalHeight)
+    const logoW = logo.naturalWidth * fit
+    const logoH = logo.naturalHeight * fit
+    context.drawImage(logo, margin + (238 - logoW) / 2, headerY + (headerH - 12 - logoH) / 2, logoW, logoH)
+  }
+  text(context, 'FLOYD WINGS AND GRILL', margin + 264, headerY + 5, '900 43px "DM Sans", Arial, sans-serif', '#f7f3e9')
+  text(context, 'MABLETON, GEORGIA', margin + 266, headerY + 58, '700 19px "DM Sans", Arial, sans-serif', '#c9c6b9')
+  text(context, 'FRESH • MADE TO ORDER', W - margin, headerY + 5, '700 18px "DM Sans", Arial, sans-serif', '#c9c6b9', 'right')
+  text(context, 'GOOD FOOD. GOOD PEOPLE.', W - margin, headerY + 43, '800 25px "DM Sans", Arial, sans-serif', palette.orange, 'right')
+  context.fillStyle = '#596050'
+  context.fillRect(margin, headerY + headerH, W - margin * 2, 2)
+
+  const sx = xs[0], sw = widths[0], px = sx + 34, pw = sw - 68
+  panel(context, sx, contentY, sw, contentH)
+  let y = panelHeading(context, px, contentY + 28, '01', 'BURGERS & SANDWICHES', pw, 42)
+  wrappedText(context, data.sandwichIntro, px, y, pw, '500 19px "DM Sans", Arial, sans-serif', palette.muted, 25, 2)
+  y += 58
+  const price1 = 126, price2 = 118, colGap = 30
+  const keyY = y + 3
+  const itemColW = (pw - colGap) / 2
+  const nameW = itemColW - price1 - price2 - 18
+  const listX = px
+  for (let column = 0; column < 2; column += 1) {
+    const colX = listX + column * (itemColW + colGap)
+    text(context, 'SANDWICH', colX + nameW + price1 / 2, keyY, '800 16px "DM Sans", Arial, sans-serif', palette.muted, 'center')
+    text(context, '& SIDE', colX + nameW + price1 / 2, keyY + 23, '900 16px "DM Sans", Arial, sans-serif', palette.red, 'center')
+    text(context, 'SANDWICH', colX + nameW + price1 + 9 + price2 / 2, keyY, '800 16px "DM Sans", Arial, sans-serif', palette.muted, 'center')
+    text(context, 'ONLY', colX + nameW + price1 + 9 + price2 / 2, keyY + 23, '900 16px "DM Sans", Arial, sans-serif', palette.red, 'center')
+  }
+  y += 58
+  const notesH = 72
+  const rowTop = y + 8
+  const listH = contentY + contentH - 30 - notesH - rowTop
+  const rowH = listH / 8
+  data.sandwiches.forEach((item, index) => {
+    const column = Math.floor(index / 8)
+    const row = index % 8
+    const colX = listX + column * (itemColW + colGap)
+    const rowY = rowTop + row * rowH
+    const descW = nameW
+    text(context, item.name, colX, rowY + 7, '800 23px "DM Sans", Arial, sans-serif', palette.ink)
+    wrappedText(context, item.description, colX, rowY + 39, descW, '500 16px "DM Sans", Arial, sans-serif', palette.muted, 20, 3)
+    text(context, item.withSide, colX + nameW + price1 - 7, rowY + 7, '900 22px "DM Sans", Arial, sans-serif', palette.red, 'right')
+    text(context, item.only, colX + itemColW, rowY + 7, '900 22px "DM Sans", Arial, sans-serif', palette.red, 'right')
+    context.fillStyle = palette.rule
+    context.fillRect(colX, rowY + rowH - 2, itemColW, 2)
+  })
+  const noteY = contentY + contentH - 30 - notesH
+  text(context, data.sandwichNotes[0], px, noteY, '800 17px "DM Sans", Arial, sans-serif', palette.red)
+  text(context, data.sandwichNotes[1], px + pw, noteY, '800 17px "DM Sans", Arial, sans-serif', palette.red, 'right')
+  wrappedText(context, data.sandwichExtras, px, noteY + 29, pw, '600 15px "DM Sans", Arial, sans-serif', palette.muted, 18, 2)
+
+  const mx = xs[1], mw = widths[1], mp = 26, mi = mx + mp, miw = mw - mp * 2
+  const middleGap = 22
+  const middleRoom = contentH - middleGap * 2
+  const rowHeights = [middleRoom * 0.24, middleRoom * 0.29, middleRoom * 0.47]
+  let my = contentY
+
+  panel(context, mx, my, mw, rowHeights[0])
+  y = panelHeading(context, mi, my + 21, '02', 'TACOS AT FLOYD', miw, 32)
+  wrappedText(context, data.tacoIntro, mi, y, miw, '500 15px "DM Sans", Arial, sans-serif', palette.muted, 20, 2)
+  const tacoY = y + 43
+  const tacoGap = 20, tacoW = (miw - tacoGap) / 2, tacoRowH = (rowHeights[0] - (tacoY - my) - 20) / 4
+  data.tacos.forEach((item, index) => {
+    const col = Math.floor(index / 4), row = index % 4
+    const tx = mi + col * (tacoW + tacoGap), ty = tacoY + row * tacoRowH
+    text(context, item.name, tx, ty, '700 18px "DM Sans", Arial, sans-serif')
+    text(context, item.price, tx + tacoW, ty, '900 18px "DM Sans", Arial, sans-serif', palette.red, 'right')
+  })
+  my += rowHeights[0] + middleGap
+
+  panel(context, mx, my, mw, rowHeights[1])
+  y = panelHeading(context, mi, my + 21, '03', 'NACHOS & BURRITOS', miw, 32)
+  const featureGap = 19, featureH = (rowHeights[1] - (y - my) - 54) / 2
+  data.bowls.forEach((item, index) => {
+    const iy = y + index * (featureH + featureGap)
+    text(context, item.name, mi, iy, '800 19px "DM Sans", Arial, sans-serif')
+    text(context, item.price, miw + mi, iy, '900 19px "DM Sans", Arial, sans-serif', palette.red, 'right')
+    wrappedText(context, item.description, mi, iy + 29, miw, '500 15px "DM Sans", Arial, sans-serif', palette.muted, 19, 3)
+  })
+  text(context, data.bowlAddOns, mi, my + rowHeights[1] - 31, '800 15px "DM Sans", Arial, sans-serif', palette.red)
+  my += rowHeights[1] + middleGap
+
+  panel(context, mx, my, mw, rowHeights[2])
+  y = panelHeading(context, mi, my + 21, '04', 'SALADS', miw, 32)
+  wrappedText(context, data.saladIntro, mi, y, miw, '500 15px "DM Sans", Arial, sans-serif', palette.muted, 20, 3)
+  y += 67
+  const saladRowH = (rowHeights[2] - (y - my) - 19) / data.salads.length
+  data.salads.forEach((item, index) => {
+    const iy = y + index * saladRowH
+    text(context, item.name, mi, iy, '800 18px "DM Sans", Arial, sans-serif')
+    text(context, item.price, miw + mi, iy, '900 18px "DM Sans", Arial, sans-serif', palette.red, 'right')
+    wrappedText(context, item.description, mi, iy + 26, miw, '500 14px "DM Sans", Arial, sans-serif', palette.muted, 17, 3)
+    context.fillStyle = palette.rule
+    context.fillRect(mi, iy + saladRowH - 3, miw, 1.5)
+  })
+
+  const fx = xs[2], fw = widths[2], fp = 30, fi = fx + fp, fiw = fw - fp * 2
+  panel(context, fx, contentY, fw, contentH)
+  y = panelHeading(context, fi, contentY + 28, '05', 'SEAFOOD', fiw, 40)
+  y += wrappedText(context, data.seafoodIntro, fi, y, fiw, '500 18px "DM Sans", Arial, sans-serif', palette.muted, 24, 3) + 15
+  const fish = data.seafood[0]
+  text(context, fish.name, fi, y, '900 27px "DM Sans", Arial, sans-serif', palette.red)
+  text(context, fish.price, fiw + fi, y, '900 27px "DM Sans", Arial, sans-serif', palette.red, 'right')
+  y += 40 + wrappedText(context, fish.description, fi, y + 3, fiw, '500 18px "DM Sans", Arial, sans-serif', palette.ink, 24, 3) + 18
+  context.fillStyle = palette.rule
+  context.fillRect(fi, y - 6, fiw, 2)
+  const platter = data.seafood[1]
+  text(context, platter.name, fi, y, '900 27px "DM Sans", Arial, sans-serif', palette.red)
+  y += 39
+  y += wrappedText(context, platter.description, fi, y, fiw, '500 18px "DM Sans", Arial, sans-serif', palette.ink, 25, 4) + 8
+  text(context, 'SEAFOOD PLATTER', fi, y, '800 15px "DM Sans", Arial, sans-serif', palette.muted)
+  text(context, platter.price, fiw + fi, y, '900 26px "DM Sans", Arial, sans-serif', palette.red, 'right')
+  y += 52
+  context.fillStyle = palette.rule
+  context.fillRect(fi, y - 7, fiw, 2)
+  const shrimp = data.seafood[2]
+  text(context, shrimp.name, fi, y, '900 27px "DM Sans", Arial, sans-serif', palette.red)
+  y += 39
+  y += wrappedText(context, shrimp.description, fi, y, fiw, '500 18px "DM Sans", Arial, sans-serif', palette.ink, 24, 3) + 16
+  const shrimpC1 = 142, shrimpC2 = 142
+  text(context, 'SHRIMP & SIDE', fiw + fi - shrimpC2 - shrimpC1, y, '800 12px "DM Sans", Arial, sans-serif', palette.muted, 'center')
+  text(context, 'SHRIMP ONLY', fiw + fi - shrimpC2 / 2, y, '800 12px "DM Sans", Arial, sans-serif', palette.muted, 'center')
+  y += 28
+  shrimp.prices.forEach((item) => {
+    text(context, item.name, fi, y, '800 19px "DM Sans", Arial, sans-serif')
+    text(context, item.withSide, fiw + fi - shrimpC2 - shrimpC1 / 2, y, '900 20px "DM Sans", Arial, sans-serif', palette.red, 'center')
+    text(context, item.only, fiw + fi - shrimpC2 / 2, y, '900 20px "DM Sans", Arial, sans-serif', palette.red, 'center')
+    y += 42
+  })
+  const drinkY = contentY + contentH - 68
+  context.fillStyle = palette.rule
+  context.fillRect(fi, drinkY - 12, fiw, 2)
+  text(context, data.drinkNote, fi, drinkY, '800 17px "DM Sans", Arial, sans-serif', palette.red)
+
+  context.fillStyle = '#596050'
+  context.fillRect(margin, footerY - 12, W - margin * 2, 2)
+  text(context, '*Prices and menu items may change', margin, footerY + 4, '600 15px "DM Sans", Arial, sans-serif', '#c2c0b5')
+  text(context, 'THANKS FOR DINING WITH US!', W / 2, footerY + 2, '800 18px "DM Sans", Arial, sans-serif', '#f7f3e9', 'center')
+  text(context, '5345 FLOYD RD SW #118 · MABLETON, GA', W - margin, footerY + 4, '600 15px "DM Sans", Arial, sans-serif', '#c2c0b5', 'right')
 }
 
 function MenuBoard() {
   const [editing, setEditing] = useState(false)
   const [saved, setSaved] = useState(false)
   const [exporting, setExporting] = useState(false)
+  const [exportsOpen, setExportsOpen] = useState(false)
+  const [screen, setScreen] = useState(0)
+  const [fullscreen, setFullscreen] = useState(false)
+
+  useEffect(() => {
+    const updateFullscreen = () => setFullscreen(Boolean(document.fullscreenElement))
+    document.addEventListener('fullscreenchange', updateFullscreen)
+    return () => document.removeEventListener('fullscreenchange', updateFullscreen)
+  }, [])
+
+  useEffect(() => {
+    if (!fullscreen || editing) return undefined
+    const timer = window.setInterval(() => setScreen((current) => (current + 1) % 3), 15000)
+    return () => window.clearInterval(timer)
+  }, [fullscreen, editing])
 
   useEffect(() => {
     const board = document.querySelector('.menu-board')
@@ -169,15 +599,16 @@ function MenuBoard() {
     else await document.exitFullscreen()
   }
 
-  const exportJpeg = async () => {
+  const exportJpeg = async (slide) => {
     setExporting(true)
     try {
       const board = document.querySelector('.menu-board')
       await document.fonts?.ready
-      await Promise.all([...board.querySelectorAll('img')].map((image) => image.decode().catch(() => undefined)))
-      const boardBounds = board.getBoundingClientRect()
-      const width = Math.round(boardBounds.width)
-      const height = Math.round(boardBounds.height)
+      const data = readBoardData(board)
+      const logo = board.querySelector('.board-brand img')
+      await logo.decode().catch(() => undefined)
+      const photoPath = ['burger-fries.jpg', 'floyd-feature-1.jpg', 'wings-platter.jpg'][slide]
+      const foodPhoto = await loadPublicImage(photoPath)
       const outputWidth = 3840
       const outputHeight = 2160
       const canvas = document.createElement('canvas')
@@ -185,12 +616,7 @@ function MenuBoard() {
       canvas.height = outputHeight
       const context = canvas.getContext('2d')
       if (!context) throw new Error('Canvas is unavailable')
-      context.fillStyle = '#20251e'
-      context.fillRect(0, 0, outputWidth, outputHeight)
-      const scale = Math.min(outputWidth / width, outputHeight / height)
-      context.translate((outputWidth - width * scale) / 2, (outputHeight - height * scale) / 2)
-      context.scale(scale, scale)
-      paintBoard(context, board, boardBounds)
+      renderTvSlide(context, data, logo, slide, foodPhoto)
 
       let jpeg = await new Promise((resolve) => {
         if (typeof canvas.toBlob === 'function') canvas.toBlob(resolve, 'image/jpeg', 0.96)
@@ -205,7 +631,7 @@ function MenuBoard() {
       const downloadUrl = URL.createObjectURL(jpeg)
       const link = document.createElement('a')
       link.href = downloadUrl
-      link.download = 'floyd-wings-digital-menu-4k.jpg'
+      link.download = `floyd-wings-tv-${slide + 1}-${['sandwiches', 'tacos-nachos-salads', 'seafood'][slide]}-4k.jpg`
       link.click()
       window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000)
     } catch (error) {
@@ -225,7 +651,18 @@ function MenuBoard() {
         <button onClick={resetBoard}>Reset board</button>
       </> : <>
         <button className="toolbar-primary" onClick={() => setEditing(true)}>Edit menu</button>
-        <button onClick={exportJpeg} disabled={exporting}>{exporting ? 'Exporting…' : 'Export 4K JPEG'}</button>
+        <button aria-label="Previous screen" onClick={() => setScreen((current) => (current + 2) % 3)}>‹</button>
+        <span className="screen-count">{screen + 1} / 3</span>
+        <button aria-label="Next screen" onClick={() => setScreen((current) => (current + 1) % 3)}>›</button>
+        <div className="export-menu-wrap">
+          <button onClick={() => setExportsOpen(!exportsOpen)} aria-expanded={exportsOpen}>Export TV pictures</button>
+          {exportsOpen && <div className="export-menu" aria-label="Export individual 4K TV pictures">
+            <button disabled={exporting} onClick={() => exportJpeg(0)}>1 · Burgers &amp; sandwiches</button>
+            <button disabled={exporting} onClick={() => exportJpeg(1)}>2 · Tacos, nachos &amp; salads</button>
+            <button disabled={exporting} onClick={() => exportJpeg(2)}>3 · Seafood</button>
+            {exporting && <span>Rendering 4K JPEG…</span>}
+          </div>}
+        </div>
         <button onClick={toggleFullscreen}>Full screen</button>
       </>}
       {saved && <span role="status">Saved on this TV</span>}
@@ -236,10 +673,14 @@ function MenuBoard() {
           <img src={`${import.meta.env.BASE_URL}floyd-logo.png`} alt="" />
           <div><span>FLOYD WINGS AND GRILL</span><small>MABLETON, GEORGIA</small></div>
         </div>
-        <div className="board-header-note"><span>FRESH • MADE TO ORDER</span><strong>GOOD FOOD. GOOD PEOPLE.</strong></div>
+        <div className="board-header-note"><span>SCREEN {screen + 1} / 3 · FRESH, MADE TO ORDER</span><strong>{screenContent[screen].title}</strong></div>
       </header>
 
-      <div className="board-columns">
+      <section className="screen-banner" aria-hidden="true">
+        <img src={`${import.meta.env.BASE_URL}${screenContent[screen].photo}`} alt="" />
+      </section>
+
+      <div className="board-columns" data-screen={screen}>
         <section className="board-panel sandwich-panel">
           <div className="panel-heading"><span className="panel-index">01</span><h1>BURGERS <i>&amp;</i> SANDWICHES</h1><span className="heading-star">✳</span></div>
           <p className="panel-description">Fresh ground beef, “house-secret” seasoned and perfectly hand-pressed on the grill. Served with fries, potato salad, cole slaw or fried okra.</p>
@@ -290,7 +731,7 @@ function MenuBoard() {
           <div className="panel-heading"><span className="panel-index">05</span><h2>SEAFOOD</h2></div>
           <p className="panel-description">All platters served with your choice of fries, potato salad or coleslaw, and cocktail or tartar sauce.</p>
           <article className="seafood-feature"><div><h3>Fish Dinner</h3><Price>10.75</Price></div><p>2 pieces of catfish, tilapia or whiting. Catfish +$1.</p></article>
-          <article className="seafood-feature"><h3>Seafood Platter</h3><p>A perfect choice for seafood lovers: 2 pieces of catfish, tilapia or whiting and 3 pieces of golden fried shrimp. Catfish +$1.</p><div className="platter-price"><span>SEAFOOD PLATTER</span><Price>11.75</Price></div></article>
+          <article className="seafood-feature"><div><h3>Seafood Platter</h3><Price>11.75</Price></div><p>2 pieces of catfish, tilapia or whiting with 3 pieces of golden fried shrimp. Catfish +$1.</p></article>
           <article className="seafood-feature shrimp-feature">
             <h3>Shrimp Basket</h3><p>Jumbo shrimp, lightly dusted and fried golden brown.</p>
             <div className="shrimp-key"><span></span><span>SHRIMP<br />&amp; SIDE</span><span>SHRIMP<br />ONLY</span></div>
@@ -305,7 +746,7 @@ function MenuBoard() {
         </section>
       </div>
 
-      <footer className="board-footer"><span>*Prices and menu items may change</span><strong>THANKS FOR DINING WITH US!</strong><span>5345 FLOYD RD SW #118 · MABLETON, GA</span></footer>
+      <footer className="board-footer"><span>*Prices and menu items may change</span><strong>THANKS FOR DINING WITH US!</strong><span>5345 FLOYD RD SW #118 · MABLETON, GA</span><span className="page-count">SCREEN {screen + 1} / 3</span></footer>
     </main>
     </>
   )
