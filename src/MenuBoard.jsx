@@ -118,16 +118,16 @@ function readBoardData(board) {
       price: prices(item)[0],
       description: read(item.querySelector('small')),
     })),
-    seafoodIntro: read(board.querySelector('.seafood-panel > .panel-description')),
+    seafoodIntro: read(board.querySelector('.seafood-general-note')),
     seafood: [
       {
         name: read(seafoodFeatures[0]?.querySelector('h3')),
-        description: read(seafoodFeatures[0]?.querySelector('p')),
+        description: read(seafoodFeatures[0]?.querySelector('p:not(.seafood-general-note)')),
         price: prices(seafoodFeatures[0] || board)[0],
       },
       {
         name: read(seafoodFeatures[1]?.querySelector('h3')),
-        description: read(seafoodFeatures[1]?.querySelector('p')),
+        description: read(seafoodFeatures[1]?.querySelector('p:not(.seafood-general-note)')),
         price: prices(seafoodFeatures[1] || board)[0],
       },
       {
@@ -216,7 +216,7 @@ async function loadPublicImage(path) {
 
 function renderTvSlide(context, data, logo, slide, foodPhoto) {
   const W = 3840, margin = 54, gap = 24, top = 290, height = 1770
-  const cardTitle = (x, y, title, width, size = 34) => {
+  const cardTitle = (x, y, title, width, size = 54) => {
     text(context, title, x, y, `900 ${size}px "DM Sans", Arial, sans-serif`, palette.red)
     context.fillStyle = palette.red
     context.fillRect(x, y + size + 12, width, 3)
@@ -228,7 +228,7 @@ function renderTvSlide(context, data, logo, slide, foodPhoto) {
     drawHeroBanner(context, foodPhoto)
     const x = margin, w = W - margin * 2, p = 38, innerX = x + p, innerW = w - p * 2
     panel(context, x, top, w, height)
-    let y = cardTitle(innerX, top + 30, 'Burgers & sandwiches', innerW, 56)
+    let y = cardTitle(innerX, top + 30, 'Burgers & sandwiches', innerW, 54)
     y += wrappedText(context, data.sandwichIntro, innerX, y, innerW, '500 26px "DM Sans", Arial, sans-serif', palette.muted, 34, 2) + 12
     const colGap = 30, itemW = (innerW - colGap) / 2, sideW = 142, onlyW = 132, labelGap = 16
     const nameW = itemW - sideW - onlyW - labelGap
@@ -244,10 +244,10 @@ function renderTvSlide(context, data, logo, slide, foodPhoto) {
     data.sandwiches.forEach((item, index) => {
       const col = Math.floor(index / 8), row = index % 8
       const cx = innerX + col * (itemW + colGap), ry = y + row * rowHeight
-      text(context, item.name, cx, ry + 10, '800 42px "DM Sans", Arial, sans-serif')
-      wrappedText(context, item.description, cx, ry + 62, nameW, '500 28px "DM Sans", Arial, sans-serif', palette.muted, 35, 3)
-      text(context, item.withSide, cx + nameW + sideW - 8, ry + 10, '900 40px "DM Sans", Arial, sans-serif', palette.red, 'right')
-      text(context, item.only, cx + itemW, ry + 10, '900 40px "DM Sans", Arial, sans-serif', palette.red, 'right')
+      text(context, item.name, cx, ry + 10, '800 38px "DM Sans", Arial, sans-serif')
+      wrappedText(context, item.description, cx, ry + 58, nameW, '500 26px "DM Sans", Arial, sans-serif', palette.muted, 33, 3)
+      text(context, item.withSide, cx + nameW + sideW - 8, ry + 10, '900 38px "DM Sans", Arial, sans-serif', palette.red, 'right')
+      text(context, item.only, cx + itemW, ry + 10, '900 38px "DM Sans", Arial, sans-serif', palette.red, 'right')
       context.fillStyle = palette.rule
       context.fillRect(cx, ry + rowHeight - 2, itemW, 2)
     })
@@ -270,7 +270,7 @@ function renderTvSlide(context, data, logo, slide, foodPhoto) {
 
     let x = xs[0] + pad, w = widths[0] - pad * 2
     let y = cardTitle(x, top + 32, 'Tacos at Floyd', w, 54)
-    y += wrappedText(context, data.tacoIntro, x, y, w, '500 25px "DM Sans", Arial, sans-serif', palette.muted, 34, 3) + 22
+    y += wrappedText(context, data.tacoIntro, x, y, w, '500 26px "DM Sans", Arial, sans-serif', palette.muted, 35, 3) + 22
     const tacoH = (top + height - 36 - y) / data.tacos.length
     data.tacos.forEach((item, i) => {
       const ty = y + i * tacoH
@@ -281,25 +281,25 @@ function renderTvSlide(context, data, logo, slide, foodPhoto) {
     })
 
     x = xs[1] + pad; w = widths[1] - pad * 2
-    y = cardTitle(x, top + 32, 'Nachos & Burritos', w, 48)
+    y = cardTitle(x, top + 32, 'Nachos & Burritos', w, 54)
     const bowlGap = 48, bowlH = (height - 190) / 2
     data.bowls.forEach((item, i) => {
       const iy = y + i * bowlH
-      text(context, item.name, x, iy, '800 37px "DM Sans", Arial, sans-serif')
-      text(context, item.price, x + w, iy, '900 37px "DM Sans", Arial, sans-serif', palette.red, 'right')
-      wrappedText(context, item.description, x, iy + 54, w, '500 28px "DM Sans", Arial, sans-serif', palette.muted, 38, 4)
+      text(context, item.name, x, iy, '800 38px "DM Sans", Arial, sans-serif')
+      text(context, item.price, x + w, iy, '900 38px "DM Sans", Arial, sans-serif', palette.red, 'right')
+      wrappedText(context, item.description, x, iy + 54, w, '500 26px "DM Sans", Arial, sans-serif', palette.muted, 36, 4)
     })
     text(context, data.bowlAddOns, x, top + height - 82, '800 24px "DM Sans", Arial, sans-serif', palette.red)
 
     x = xs[2] + pad; w = widths[2] - pad * 2
     y = cardTitle(x, top + 32, 'Salads', w, 54)
-    y += wrappedText(context, data.saladIntro, x, y, w, '500 23px "DM Sans", Arial, sans-serif', palette.muted, 31, 3) + 20
+    y += wrappedText(context, data.saladIntro, x, y, w, '500 26px "DM Sans", Arial, sans-serif', palette.muted, 35, 3) + 20
     const saladH = (top + height - 34 - y) / data.salads.length
     data.salads.forEach((item, i) => {
       const iy = y + i * saladH
-      text(context, item.name, x, iy, '800 30px "DM Sans", Arial, sans-serif')
-      text(context, item.price, x + w, iy, '900 31px "DM Sans", Arial, sans-serif', palette.red, 'right')
-      wrappedText(context, item.description, x, iy + 42, w, '500 22px "DM Sans", Arial, sans-serif', palette.muted, 30, 3)
+      text(context, item.name, x, iy, '800 38px "DM Sans", Arial, sans-serif')
+      text(context, item.price, x + w, iy, '900 38px "DM Sans", Arial, sans-serif', palette.red, 'right')
+      wrappedText(context, item.description, x, iy + 48, w, '500 26px "DM Sans", Arial, sans-serif', palette.muted, 35, 3)
       context.fillStyle = palette.rule
       context.fillRect(x, iy + saladH - 3, w, 2)
     })
@@ -308,60 +308,44 @@ function renderTvSlide(context, data, logo, slide, foodPhoto) {
 
   drawTvFrame(context, logo, 'SEAFOOD', 3)
   drawHeroBanner(context, foodPhoto)
-  const introX = margin + 42, introW = W - margin * 2 - 84
-  const cardY = top, cardH = height, cardW = W - margin * 2
-  panel(context, margin, cardY, W - margin * 2, cardH)
-  const seafoodTitleY = panelHeading(context, introX, top + 30, '05', 'SEAFOOD', introW, 40)
-  wrappedText(context, data.seafoodIntro, introX, seafoodTitleY, introW, '500 22px "DM Sans", Arial, sans-serif', palette.muted, 30, 2)
-  const featureTop = seafoodTitleY + 94
-  const footerY = cardY + cardH - 42, cardGap = 28, leftW = (cardW - cardGap) * 0.43, rightW = cardW - cardGap - leftW
-  const leftX = margin, rightX = margin + leftW + cardGap, leftGap = 22
-  const leftCardH = (footerY - featureTop - leftGap - 14) / 2
-  context.fillStyle = palette.rule
-  context.fillRect(leftX + leftW + cardGap / 2, featureTop, 2, footerY - featureTop - 10)
-  context.fillRect(leftX, featureTop + leftCardH + leftGap / 2, leftW, 2)
-  const titleLine = (x, y, w, title, price) => {
-    text(context, title, x, y, '800 43px "DM Sans", Arial, sans-serif', palette.ink)
-    text(context, price, x + w, y, '900 42px "DM Sans", Arial, sans-serif', palette.red, 'right')
-    context.fillStyle = palette.red
-    context.fillRect(x, y + 60, w, 3)
-  }
-  const innerPad = 34
-  const fish = data.seafood[0], platter = data.seafood[1], shrimp = data.seafood[2]
-  let x = leftX + innerPad, w = leftW - innerPad * 2
-  let y = featureTop + 34
-  titleLine(x, y, w, fish.name, fish.price)
-  wrappedText(context, fish.description, x, y + 88, w, '500 29px "DM Sans", Arial, sans-serif', palette.ink, 39, 3)
-  const choiceY = y + 230
-  text(context, 'CHOOSE YOUR FISH', x, choiceY, '800 21px "DM Sans", Arial, sans-serif', palette.red)
-  wrappedText(context, 'Catfish · Tilapia · Whiting', x, choiceY + 40, w, '700 29px "DM Sans", Arial, sans-serif', palette.ink, 38, 2)
+  const seafoodTop = top, seafoodHeight = height
+  const ratios = [1.08, 1.08, 1.2], seafoodGap = gap, totalW = W - margin * 2 - seafoodGap * 2
+  const unit = totalW / ratios.reduce((sum, value) => sum + value, 0)
+  const widths = ratios.map((value) => value * unit)
+  const xs = [margin, margin + widths[0] + seafoodGap, margin + widths[0] + seafoodGap + widths[1] + seafoodGap]
+  xs.forEach((x, index) => panel(context, x, seafoodTop, widths[index], seafoodHeight))
+  const pad = 30, fish = data.seafood[0], platter = data.seafood[1], shrimp = data.seafood[2]
 
-  const platterY = featureTop + leftCardH + leftGap + 34
-  titleLine(x, platterY, w, platter.name, platter.price)
-  wrappedText(context, platter.description, x, platterY + 88, w, '500 28px "DM Sans", Arial, sans-serif', palette.ink, 38, 3)
-  text(context, '2 PIECES OF FISH  +  3 GOLDEN SHRIMP', x, platterY + 220, '800 23px "DM Sans", Arial, sans-serif', palette.red)
+  let x = xs[0] + pad, w = widths[0] - pad * 2
+  let y = cardTitle(x, seafoodTop + 32, fish.name, w, 54)
+  text(context, fish.price, x + w, seafoodTop + 32, '900 38px "DM Sans", Arial, sans-serif', palette.red, 'right')
+  y += wrappedText(context, data.seafoodIntro, x, y, w, '500 26px "DM Sans", Arial, sans-serif', palette.muted, 35, 3) + 22
+  y += wrappedText(context, fish.description, x, y, w, '500 26px "DM Sans", Arial, sans-serif', palette.muted, 35, 4) + 24
+  text(context, 'CHOOSE YOUR FISH', x, y, '800 19px "DM Sans", Arial, sans-serif', palette.red)
+  wrappedText(context, 'Catfish · Tilapia · Whiting', x, y + 32, w, '700 26px "DM Sans", Arial, sans-serif', palette.ink, 35, 2)
 
-  x = rightX + innerPad; w = rightW - innerPad * 2
-  y = featureTop + 34
-  text(context, shrimp.name, x, y, '800 46px "DM Sans", Arial, sans-serif', palette.ink)
-  context.fillStyle = palette.red
-  context.fillRect(x, y + 62, w, 3)
-  wrappedText(context, shrimp.description, x, y + 82, w, '500 29px "DM Sans", Arial, sans-serif', palette.ink, 40, 3)
-  const c1 = 260, c2 = 250, priceStart = x + w - c1 - c2
-  const tableY = y + 220
-  text(context, 'SHRIMP & SIDE', priceStart + c1 / 2, tableY, '800 22px "DM Sans", Arial, sans-serif', palette.muted, 'center')
-  text(context, 'SHRIMP ONLY', priceStart + c1 + c2 / 2, tableY, '800 22px "DM Sans", Arial, sans-serif', palette.muted, 'center')
+  x = xs[1] + pad; w = widths[1] - pad * 2
+  y = cardTitle(x, seafoodTop + 32, platter.name, w, 54)
+  text(context, platter.price, x + w, seafoodTop + 32, '900 38px "DM Sans", Arial, sans-serif', palette.red, 'right')
+  y += wrappedText(context, data.seafoodIntro, x, y, w, '500 26px "DM Sans", Arial, sans-serif', palette.muted, 35, 3) + 22
+  wrappedText(context, platter.description, x, y, w, '500 26px "DM Sans", Arial, sans-serif', palette.muted, 35, 5)
+
+  x = xs[2] + pad; w = widths[2] - pad * 2
+  y = cardTitle(x, seafoodTop + 32, shrimp.name, w, 54)
+  y += wrappedText(context, shrimp.description, x, y, w, '500 26px "DM Sans", Arial, sans-serif', palette.muted, 35, 4) + 18
+  const c1 = 200, c2 = 200, priceStart = x + w - c1 - c2
+  const tableY = y + 12
+  text(context, 'SHRIMP & SIDE', priceStart + c1 / 2, tableY, '800 16px "DM Sans", Arial, sans-serif', palette.muted, 'center')
+  text(context, 'SHRIMP ONLY', priceStart + c1 + c2 / 2, tableY, '800 16px "DM Sans", Arial, sans-serif', palette.muted, 'center')
   shrimp.prices.forEach((item, index) => {
-    const iy = tableY + 54 + index * 120
-    text(context, item.name, x, iy, '800 40px "DM Sans", Arial, sans-serif')
-    text(context, item.withSide, priceStart + c1 / 2, iy, '900 42px "DM Sans", Arial, sans-serif', palette.red, 'center')
-    text(context, item.only, priceStart + c1 + c2 / 2, iy, '900 42px "DM Sans", Arial, sans-serif', palette.red, 'center')
+    const iy = tableY + 42 + index * 105
+    text(context, item.name, x, iy, '800 38px "DM Sans", Arial, sans-serif')
+    text(context, item.withSide, priceStart + c1 / 2, iy, '900 38px "DM Sans", Arial, sans-serif', palette.red, 'center')
+    text(context, item.only, priceStart + c1 + c2 / 2, iy, '900 38px "DM Sans", Arial, sans-serif', palette.red, 'center')
     context.fillStyle = palette.rule
-    context.fillRect(x, iy + 54, w, 2)
+    context.fillRect(x, iy + 39, w, 2)
   })
-  context.fillStyle = palette.rule
-  context.fillRect(margin + 32, footerY + 8, cardW - 64, 2)
-  text(context, data.drinkNote, margin + cardW / 2, footerY + 17, '800 24px "DM Sans", Arial, sans-serif', palette.red, 'center')
+  text(context, data.drinkNote, x + w - 8, seafoodTop + seafoodHeight - 66, '800 18px "DM Sans", Arial, sans-serif', palette.red, 'right')
 }
 
 function renderMenuCanvas(context, data, logo) {
@@ -667,7 +651,7 @@ function MenuBoard() {
       </>}
       {saved && <span role="status">Saved on this TV</span>}
     </div>
-    <main className="menu-board">
+    <main className="menu-board" data-screen={screen}>
       <header className="board-header">
         <div className="board-brand">
           <img src={`${import.meta.env.BASE_URL}floyd-logo.png`} alt="" />
@@ -727,21 +711,19 @@ function MenuBoard() {
           </section>
         </div>
 
-        <section className="board-panel seafood-panel">
-          <div className="panel-heading"><span className="panel-index">05</span><h2>SEAFOOD</h2></div>
-          <p className="panel-description">All platters served with your choice of fries, potato salad or coleslaw, and cocktail or tartar sauce.</p>
-          <article className="seafood-feature"><div><h3>Fish Dinner</h3><Price>10.75</Price></div><p>2 pieces of catfish, tilapia or whiting. Catfish +$1.</p></article>
-          <article className="seafood-feature"><div><h3>Seafood Platter</h3><Price>11.75</Price></div><p>2 pieces of catfish, tilapia or whiting with 3 pieces of golden fried shrimp. Catfish +$1.</p></article>
-          <article className="seafood-feature shrimp-feature">
-            <h3>Shrimp Basket</h3><p>Jumbo shrimp, lightly dusted and fried golden brown.</p>
+        <section className="seafood-panel">
+          <article className="board-panel seafood-feature"><div className="panel-heading seafood-feature-heading"><span className="panel-index">05</span><h3>Fish Dinner</h3><Price>10.75</Price></div><p className="seafood-general-note">All platters served with your choice of fries, potato salad or coleslaw, and cocktail or tartar sauce.</p><p>2 pieces of catfish, tilapia or whiting. Catfish +$1.</p></article>
+          <article className="board-panel seafood-feature"><div className="panel-heading seafood-feature-heading"><span className="panel-index">06</span><h3>Seafood Platter</h3><Price>11.75</Price></div><p className="seafood-general-note">All platters served with your choice of fries, potato salad or coleslaw, and cocktail or tartar sauce.</p><p>2 pieces of catfish, tilapia or whiting with 3 pieces of golden fried shrimp. Catfish +$1.</p></article>
+          <article className="board-panel seafood-feature shrimp-feature">
+            <div className="panel-heading seafood-feature-heading"><span className="panel-index">07</span><h3>Shrimp Basket</h3></div><p>Jumbo shrimp, lightly dusted and fried golden brown.</p>
             <div className="shrimp-key"><span></span><span>SHRIMP<br />&amp; SIDE</span><span>SHRIMP<br />ONLY</span></div>
             {[
               ['7 Piece', '9.99', '7.99'],
               ['10 Piece', '12.49', '10.99'],
               ['15 Piece', '17.65', '15.99'],
             ].map(([name, combo, alone]) => <div className="shrimp-row" key={name}><strong>{name}</strong><Price>{combo}</Price><Price>{alone}</Price></div>)}
+            <div className="drink-note"><span>MAKE IT A MEAL</span><strong>12 oz drink $1 <i>·</i> 16 oz $1.89</strong></div>
           </article>
-          <div className="drink-note"><span>MAKE IT A MEAL</span><strong>12 oz drink $1 <i>·</i> 16 oz $1.89</strong></div>
           <img className="seafood-photo" src={`${import.meta.env.BASE_URL}wings-platter.jpg`} alt="Golden fried seafood and dipping sauce" />
         </section>
       </div>
