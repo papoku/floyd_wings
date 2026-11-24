@@ -78,7 +78,51 @@ function wrappedText(context, value, x, y, width, font, color, lineHeight, maxLi
 }
 
 function panel(context, x, y, width, height) {
-  roundRect(context, x, y, width, height, 22, palette.cream)
+  context.save()
+  context.beginPath()
+  if (context.roundRect) context.roundRect(x, y, width, height, 22)
+  else context.rect(x, y, width, height)
+  context.clip()
+  const base = context.createLinearGradient(x, y, x + width, y + height)
+  base.addColorStop(0, '#fffefb')
+  base.addColorStop(.54, palette.cream)
+  base.addColorStop(1, '#eee2d7')
+  context.fillStyle = base
+  context.fillRect(x, y, width, height)
+  const sheen = context.createRadialGradient(x + width * .35, y + height * .04, 0, x + width * .35, y + height * .04, width * .86)
+  sheen.addColorStop(0, 'rgba(255,255,255,.7)')
+  sheen.addColorStop(.55, 'rgba(255,255,255,.16)')
+  sheen.addColorStop(1, 'rgba(255,255,255,0)')
+  context.fillStyle = sheen
+  context.fillRect(x, y, width, height)
+  context.restore()
+}
+
+function photoPanel(context, image, x, y, width, height) {
+  context.save()
+  context.beginPath()
+  if (context.roundRect) context.roundRect(x, y, width, height, 22)
+  else context.rect(x, y, width, height)
+  context.clip()
+  const base = context.createLinearGradient(x, y, x + width, y + height)
+  base.addColorStop(0, '#30352d')
+  base.addColorStop(1, '#191d18')
+  context.fillStyle = base
+  context.fillRect(x, y, width, height)
+  if (image?.complete && image.naturalWidth) {
+    const scale = Math.max(width / image.naturalWidth, height / image.naturalHeight)
+    const imageWidth = image.naturalWidth * scale, imageHeight = image.naturalHeight * scale
+    context.drawImage(image, x + (width - imageWidth) / 2, y + (height - imageHeight) / 2, imageWidth, imageHeight)
+  }
+  context.fillStyle = 'rgba(19,23,19,.94)'
+  context.fillRect(x, y, width, height)
+  const sheen = context.createRadialGradient(x + width * .38, y, 0, x + width * .38, y, width * .85)
+  sheen.addColorStop(0, 'rgba(255,255,255,.1)')
+  sheen.addColorStop(.55, 'rgba(255,255,255,.02)')
+  sheen.addColorStop(1, 'rgba(255,255,255,0)')
+  context.fillStyle = sheen
+  context.fillRect(x, y, width, height)
+  context.restore()
 }
 
 function panelHeading(context, x, y, index, title, width, size = 42) {
@@ -144,12 +188,12 @@ function readBoardData(board) {
   }
 }
 
-function drawTvFrame(context, logo, title, number) {
+function drawTvFrame(context, logo, title, number, warm = false) {
   const W = 3840, H = 2160, margin = 54
   const bg = context.createRadialGradient(W / 2, 0, 0, W / 2, 0, W * 0.8)
-  bg.addColorStop(0, '#343a30')
-  bg.addColorStop(0.55, '#22271f')
-  bg.addColorStop(1, '#191d18')
+  bg.addColorStop(0, warm ? '#39342e' : '#343a30')
+  bg.addColorStop(0.55, warm ? '#252620' : '#22271f')
+  bg.addColorStop(1, warm ? '#191a17' : '#191d18')
   context.fillStyle = bg
   context.fillRect(0, 0, W, H)
   roundRect(context, margin, 36, 238, 96, 12, palette.cream)
@@ -161,7 +205,7 @@ function drawTvFrame(context, logo, title, number) {
   text(context, 'FLOYD WINGS AND GRILL', margin + 264, 40, '900 43px "DM Sans", Arial, sans-serif', palette.cream)
   text(context, 'MABLETON, GEORGIA', margin + 266, 92, '700 19px "DM Sans", Arial, sans-serif', '#bdc1b2')
   text(context, `SCREEN ${number} / 3  ·  FRESH, MADE TO ORDER`, W - margin, 42, '700 18px "DM Sans", Arial, sans-serif', '#bdc1b2', 'right')
-  text(context, title, W - margin, 75, '900 32px "DM Sans", Arial, sans-serif', palette.orange, 'right')
+  if (!warm) text(context, title, W - margin, 75, '900 32px "DM Sans", Arial, sans-serif', palette.orange, 'right')
   context.fillStyle = '#596050'
   context.fillRect(margin, 148, W - margin * 2, 2)
   context.fillRect(margin, 2090, W - margin * 2, 2)
@@ -203,6 +247,39 @@ function drawHeroBanner(context, image, top = 168) {
   context.restore()
 }
 
+function drawSandwichBanner(context, burger, top = 168) {
+  const x = 54, width = 3732, height = 160
+  context.save()
+  context.beginPath()
+  if (context.roundRect) context.roundRect(x, top, width, height, 16)
+  else context.rect(x, top, width, height)
+  context.clip()
+  const bg = context.createLinearGradient(x, top, x + width, top + height)
+  bg.addColorStop(0, '#30271f')
+  bg.addColorStop(1, '#171b17')
+  context.fillStyle = bg
+  context.fillRect(x, top, width, height)
+  if (burger?.complete && burger.naturalWidth) {
+    const scale = Math.max(width / burger.naturalWidth, height / burger.naturalHeight)
+    const imageWidth = burger.naturalWidth * scale, imageHeight = burger.naturalHeight * scale
+    context.drawImage(burger, x + (width - imageWidth) / 2, top + (height - imageHeight) / 2, imageWidth, imageHeight)
+  }
+  const shade = context.createLinearGradient(x, top, x + width, top)
+  shade.addColorStop(0, 'rgba(24,29,23,.82)')
+  shade.addColorStop(.62, 'rgba(24,29,23,.64)')
+  shade.addColorStop(1, 'rgba(24,29,23,.35)')
+  context.fillStyle = shade
+  context.fillRect(x, top, width, height)
+  text(context, 'FRESHLY MADE IN MABLETON', x + 330, top + 23, '800 18px "DM Sans", Arial, sans-serif', '#f1a27e')
+  text(context, 'HAMBURGERS', x + 330, top + 61, '700 76px "Playfair Display", Georgia, serif', palette.cream)
+  context.font = 'italic 700 76px "Playfair Display", Georgia, serif'
+  const titleWidth = context.measureText('HAMBURGERS').width
+  text(context, '& SANDWICHES', x + 350 + titleWidth, top + 61, 'italic 700 76px "Playfair Display", Georgia, serif', '#ef7951')
+  context.fillStyle = '#e86237'
+  context.fillRect(x, top + height - 5, width, 5)
+  context.restore()
+}
+
 async function loadPublicImage(path) {
   const image = new Image()
   image.src = `${import.meta.env.BASE_URL}${path}`
@@ -224,37 +301,41 @@ function renderTvSlide(context, data, logo, slide, foodPhoto) {
   }
 
   if (slide === 0) {
-    drawTvFrame(context, logo, 'BURGERS & SANDWICHES', 1)
-    drawHeroBanner(context, foodPhoto)
+    drawTvFrame(context, logo, 'BURGERS & SANDWICHES', 1, true)
+    drawSandwichBanner(context, foodPhoto)
     const x = margin, w = W - margin * 2, p = 38, innerX = x + p, innerW = w - p * 2
-    panel(context, x, top, w, height)
-    let y = cardTitle(innerX, top + 30, 'Burgers & sandwiches', innerW, 54)
-    y += wrappedText(context, data.sandwichIntro, innerX, y, innerW, '500 26px "DM Sans", Arial, sans-serif', palette.muted, 34, 2) + 12
+    const panelTop = top + 60, panelHeight = height - 60
+    photoPanel(context, foodPhoto, x, panelTop, w, panelHeight)
+    let y = panelTop + 26
+    const introW = innerW * .86, introX = innerX + (innerW - introW) / 2
+    roundRect(context, introX - 18, y - 8, introW + 36, 62, 10, '#e8eed8')
+    wrappedText(context, data.sandwichIntro, introX, y, introW, '500 30px "DM Sans", Arial, sans-serif', palette.ink, 38, 2)
+    y += 74
     const colGap = 30, itemW = (innerW - colGap) / 2, sideW = 142, onlyW = 132, labelGap = 16
     const nameW = itemW - sideW - onlyW - labelGap
     for (let col = 0; col < 2; col += 1) {
       const cx = innerX + col * (itemW + colGap)
-      text(context, 'SANDWICH', cx + nameW + sideW / 2, y, '800 22px "DM Sans", Arial, sans-serif', palette.muted, 'center')
-      text(context, '& SIDE', cx + nameW + sideW / 2, y + 28, '900 22px "DM Sans", Arial, sans-serif', palette.red, 'center')
-      text(context, 'SANDWICH', cx + nameW + sideW + labelGap + onlyW / 2, y, '800 22px "DM Sans", Arial, sans-serif', palette.muted, 'center')
-      text(context, 'ONLY', cx + nameW + sideW + labelGap + onlyW / 2, y + 28, '900 22px "DM Sans", Arial, sans-serif', palette.red, 'center')
+      text(context, 'SANDWICH', cx + nameW + sideW - 8, y, '800 22px "DM Sans", Arial, sans-serif', palette.cream, 'right')
+      text(context, '& SIDE', cx + nameW + sideW - 8, y + 28, '900 22px "DM Sans", Arial, sans-serif', palette.red, 'right')
+      text(context, 'SANDWICH', cx + itemW, y, '800 22px "DM Sans", Arial, sans-serif', palette.cream, 'right')
+      text(context, 'ONLY', cx + itemW, y + 28, '900 22px "DM Sans", Arial, sans-serif', palette.red, 'right')
     }
     y += 62
-    const notesHeight = 76, rowHeight = (top + height - p - notesHeight - y) / 8
+    const notesHeight = 76, panelBottom = panelTop + panelHeight, rowHeight = (panelBottom - p - notesHeight - y) / 8
     data.sandwiches.forEach((item, index) => {
       const col = Math.floor(index / 8), row = index % 8
       const cx = innerX + col * (itemW + colGap), ry = y + row * rowHeight
-      text(context, item.name, cx, ry + 10, '800 38px "DM Sans", Arial, sans-serif')
-      wrappedText(context, item.description, cx, ry + 58, nameW, '500 26px "DM Sans", Arial, sans-serif', palette.muted, 33, 3)
-      text(context, item.withSide, cx + nameW + sideW - 8, ry + 10, '900 38px "DM Sans", Arial, sans-serif', palette.red, 'right')
-      text(context, item.only, cx + itemW, ry + 10, '900 38px "DM Sans", Arial, sans-serif', palette.red, 'right')
+      text(context, item.name, cx, ry + 10, '800 38px "DM Sans", Arial, sans-serif', '#ff916d')
+      wrappedText(context, item.description, cx, ry + 58, nameW, '500 26px "DM Sans", Arial, sans-serif', '#fffaf1', 33, 3)
+      text(context, item.withSide, cx + nameW + sideW - 8, ry + 10, '900 38px "DM Sans", Arial, sans-serif', '#fffaf1', 'right')
+      text(context, item.only, cx + itemW, ry + 10, '900 38px "DM Sans", Arial, sans-serif', '#fffaf1', 'right')
       context.fillStyle = palette.rule
       context.fillRect(cx, ry + rowHeight - 2, itemW, 2)
     })
-    const notesY = top + height - p - notesHeight
+    const notesY = panelBottom - p - notesHeight
     text(context, data.sandwichNotes[0], innerX, notesY, '800 25px "DM Sans", Arial, sans-serif', palette.red)
     text(context, data.sandwichNotes[1], innerX + innerW, notesY, '800 25px "DM Sans", Arial, sans-serif', palette.red, 'right')
-    text(context, data.sandwichExtras, innerX, notesY + 38, '600 21px "DM Sans", Arial, sans-serif', palette.muted)
+    text(context, data.sandwichExtras, innerX, notesY + 38, '600 21px "DM Sans", Arial, sans-serif', '#f1ece3')
     return
   }
 
@@ -396,10 +477,10 @@ function renderMenuCanvas(context, data, logo) {
   const listX = px
   for (let column = 0; column < 2; column += 1) {
     const colX = listX + column * (itemColW + colGap)
-    text(context, 'SANDWICH', colX + nameW + price1 / 2, keyY, '800 16px "DM Sans", Arial, sans-serif', palette.muted, 'center')
-    text(context, '& SIDE', colX + nameW + price1 / 2, keyY + 23, '900 16px "DM Sans", Arial, sans-serif', palette.red, 'center')
-    text(context, 'SANDWICH', colX + nameW + price1 + 9 + price2 / 2, keyY, '800 16px "DM Sans", Arial, sans-serif', palette.muted, 'center')
-    text(context, 'ONLY', colX + nameW + price1 + 9 + price2 / 2, keyY + 23, '900 16px "DM Sans", Arial, sans-serif', palette.red, 'center')
+    text(context, 'SANDWICH', colX + nameW + price1 - 7, keyY, '800 16px "DM Sans", Arial, sans-serif', palette.muted, 'right')
+    text(context, '& SIDE', colX + nameW + price1 - 7, keyY + 23, '900 16px "DM Sans", Arial, sans-serif', palette.red, 'right')
+    text(context, 'SANDWICH', colX + itemColW, keyY, '800 16px "DM Sans", Arial, sans-serif', palette.muted, 'right')
+    text(context, 'ONLY', colX + itemColW, keyY + 23, '900 16px "DM Sans", Arial, sans-serif', palette.red, 'right')
   }
   y += 58
   const notesH = 72
@@ -660,22 +741,27 @@ function MenuBoard() {
         <div className="board-header-note"><span>SCREEN {screen + 1} / 3 · FRESH, MADE TO ORDER</span><strong>{screenContent[screen].title}</strong></div>
       </header>
 
-      <section className="screen-banner" aria-hidden="true">
-        <img src={`${import.meta.env.BASE_URL}${screenContent[screen].photo}`} alt="" />
+      <section className={`screen-banner${screen === 0 ? ' screen-banner-burgers' : ''}`} aria-hidden="true">
+        {screen === 0 ? <>
+          <img className="banner-food-background" src={`${import.meta.env.BASE_URL}${screenContent[screen].photo}`} alt="" />
+          <div className="burger-banner-title"><span>FRESHLY MADE IN MABLETON</span><h1>HAMBURGERS <i>&amp; SANDWICHES</i></h1></div>
+        </> : <img src={`${import.meta.env.BASE_URL}${screenContent[screen].photo}`} alt="" />}
       </section>
 
       <div className="board-columns" data-screen={screen}>
-        <section className="board-panel sandwich-panel">
+        <section className="board-panel sandwich-panel" style={{ '--menu-photo': `url("${import.meta.env.BASE_URL}burger-fries.jpg")` }}>
           <div className="panel-heading"><span className="panel-index">01</span><h1>BURGERS <i>&amp;</i> SANDWICHES</h1><span className="heading-star">✳</span></div>
           <p className="panel-description">Fresh ground beef, “house-secret” seasoned and perfectly hand-pressed on the grill. Served with fries, potato salad, cole slaw or fried okra.</p>
-          <div className="price-key" aria-label="Prices shown as sandwich with side, then sandwich only">
-            <span></span>
-            <span><strong>SANDWICH</strong><small>&amp; SIDE</small></span>
-            <span><strong>SANDWICH</strong><small>ONLY</small></span>
-          </div>
           <div className="sandwich-list">
-            {sandwiches.map(([name, combo, alone, description]) => <div className="sandwich-row" key={name}>
-              <div className="sandwich-copy"><strong>{name}</strong><small>{description}</small></div><Price>{combo}</Price><Price>{alone}</Price>
+            {[0, 1].map((column) => <div className="sandwich-column" key={column}>
+              <div className="price-key" aria-label="Prices shown as sandwich with side, then sandwich only">
+                <span></span>
+                <span><strong>SANDWICH</strong><small>&amp; SIDE</small></span>
+                <span><strong>SANDWICH</strong><small>ONLY</small></span>
+              </div>
+              {sandwiches.slice(column * 8, column * 8 + 8).map(([name, combo, alone, description]) => <div className="sandwich-row" key={name}>
+                <div className="sandwich-copy"><strong>{name}</strong><small>{description}</small></div><Price>{combo}</Price><Price>{alone}</Price>
+              </div>)}
             </div>)}
           </div>
           <div className="sandwich-notes"><span>Substitute side salad +$1.99</span><span>Add 12 oz drink $1 · 16 oz $1.89</span></div>
